@@ -1,3 +1,10 @@
+/**
+ * DA PIMP Plus - Arduino Pro Mini Firmware
+ * 
+ * https://github.com/gutierrezps/da-pimp-plus
+ * 
+ */
+
 #include <Arduino.h>
 
 void setup() {

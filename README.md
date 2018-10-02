@@ -1,5 +1,5 @@
-# DA PIMP 2 Switch
-Improved Battery Desulfator DA PIMP 2, based on [Mikey Sklar's project](http://mikeysklar.blogspot.com/p/da-pimp-battery-desulfator.html). This repository has both the schematic and the Arduino firmware, developed and built with [PlatformIO](https://platformio.org/).
+# DA PIMP Plus
+Improved Battery Desulfator, based on [Mikey Sklar's project](http://mikeysklar.blogspot.com/p/da-pimp-battery-desulfator.html). This repository has both the schematic and the Arduino firmware, developed and built with [PlatformIO](https://platformio.org/).
 
 ## Improvements
 
