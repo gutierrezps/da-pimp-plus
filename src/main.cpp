@@ -25,8 +25,8 @@ const struct {
     char connectOrFloatRelay;
 } k_pins = {A0, A1, A2, A3, 10, 11, 12};
 
-const char k_nAnalogSamples = 100;       // to take for each acquisition
-const float k_modeFactor[3] = { 3.04, 3.249, 65.57 };   // voltade divider factor
+const uint16_t k_nAnalogSamples = 256;       // to take for each acquisition
+const float k_modeFactor[3] = { 3.242, 3.249, 69.7 };   // voltade divider factor
 
 
 /**
@@ -45,9 +45,9 @@ const char k_modeStrings[3][6] = {"DISCH", "FLOAT", "CHARG"};
  * TODO: https://forum.arduino.cc/index.php?topic=109672.msg827645#msg827645
  **/
 float avgAnalog(char pin) {
-    unsigned long sum = 0;
+    uint32_t sum = 0;
 
-    for (uint8_t i = 0; i < k_nAnalogSamples; ++i)
+    for (uint16_t i = 0; i < k_nAnalogSamples; ++i)
     {
         sum += analogRead(pin);
         delayMicroseconds(25);
@@ -83,14 +83,18 @@ void setup() {
     
     // Current sensor offset calibration
     delay(1000);
+    g_lcd.print('.');
+    delay(1000);
     
     // calibrate float offset
     g_currentSensorOffset[1] = avgAnalog(k_pins.currentSensor);
     g_lcd.print('.');
-
+    
     // calibrate discharge offset
     g_currentMode = 0;
     changeModeRelays();
+    delay(1000);
+    g_lcd.print('.');
     delay(1000);
     g_currentSensorOffset[0] = avgAnalog(k_pins.currentSensor);
     g_lcd.print('.');
@@ -99,10 +103,14 @@ void setup() {
     g_currentMode = 2;
     changeModeRelays();
     delay(1000);
+    g_lcd.print('.');
+    delay(1000);
     g_currentSensorOffset[2] = avgAnalog(k_pins.currentSensor);
     g_lcd.print('.');
 
     g_lcd.clear();
+    g_currentMode = 1;
+    changeModeRelays();
 }
 
 void loop() {
@@ -118,6 +126,7 @@ void loop() {
         }
 
         changeModeRelays();
+        g_lcdTimer = 0;
     }
     
     // update LCD display every 1 second
@@ -144,8 +153,9 @@ void loop() {
 
     float analogValue = avgAnalog(readFrom);
     float voltage = analogValue * k_modeFactor[mode];
+    if (mode == 2 && voltage < 2) voltage = 0;      // noise
     g_lcd.print(voltage, 2);
-    g_lcd.print(" V    ");
+    g_lcd.print(" V  ");
 
 
     // print current 
@@ -157,5 +167,5 @@ void loop() {
     if (current < 0) current *= -1.0;
 
     g_lcd.print(current);
-    g_lcd.print(" A  ");
+    g_lcd.print(" A");
 }
