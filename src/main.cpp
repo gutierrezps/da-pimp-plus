@@ -25,8 +25,8 @@ const struct {
     char connectOrFloatRelay;
 } k_pins = {A0, A1, A2, A3, 10, 11, 12};
 
-const uint16_t k_nAnalogSamples = 256;       // to take for each acquisition
-const float k_modeFactor[3] = { 3.242, 3.249, 69.7 };   // voltade divider factor
+const uint16_t k_nAnalogSamples = 1024;       // to take for each acquisition
+const float k_modeFactor[3] = { 3.242, 3.249, 71.9 };   // voltade divider factor
 
 
 /**
@@ -40,20 +40,16 @@ uint8_t g_currentMode = 1;         // 0: discharge, 1: float, 2: charging
 const char k_modeStrings[3][6] = {"DISCH", "FLOAT", "CHARG"};
 
 /**
- * Better precision analogRead()
- * 
- * TODO: https://forum.arduino.cc/index.php?topic=109672.msg827645#msg827645
+ * analogRead() averaged and converted to voltage
  **/
-float avgAnalog(char pin) {
+float readAnalog(char pin) {
     uint32_t sum = 0;
 
-    for (uint16_t i = 0; i < k_nAnalogSamples; ++i)
-    {
+    for (uint16_t i = 0; i < k_nAnalogSamples; ++i) {
         sum += analogRead(pin);
-        delayMicroseconds(25);
     }
 
-    return (sum/(k_nAnalogSamples * 1023.0)) * 5.0;
+    return ((sum/k_nAnalogSamples)/(1023.0)) * 5.0;
 }
 
 void changeModeRelays() {
@@ -87,7 +83,7 @@ void setup() {
     delay(1000);
     
     // calibrate float offset
-    g_currentSensorOffset[1] = avgAnalog(k_pins.currentSensor);
+    g_currentSensorOffset[1] = readAnalog(k_pins.currentSensor);
     g_lcd.print('.');
     
     // calibrate discharge offset
@@ -96,7 +92,7 @@ void setup() {
     delay(1000);
     g_lcd.print('.');
     delay(1000);
-    g_currentSensorOffset[0] = avgAnalog(k_pins.currentSensor);
+    g_currentSensorOffset[0] = readAnalog(k_pins.currentSensor);
     g_lcd.print('.');
 
     // calibrate charge offset
@@ -105,7 +101,7 @@ void setup() {
     delay(1000);
     g_lcd.print('.');
     delay(1000);
-    g_currentSensorOffset[2] = avgAnalog(k_pins.currentSensor);
+    g_currentSensorOffset[2] = readAnalog(k_pins.currentSensor);
     g_lcd.print('.');
 
     g_lcd.clear();
@@ -130,7 +126,7 @@ void loop() {
     }
     
     // update LCD display every 1 second
-    if (millis() - g_lcdTimer < 1000) return;
+    if (millis() - g_lcdTimer < 250) return;
 
     g_lcdTimer = millis();
 
@@ -151,10 +147,15 @@ void loop() {
     if (mode == 1) readFrom = k_pins.floatVoltage;
     else if (mode == 2) readFrom = k_pins.chargeVoltage;
 
-    float analogValue = avgAnalog(readFrom);
+    float analogValue = readAnalog(readFrom);
     float voltage = analogValue * k_modeFactor[mode];
-    if (mode == 2 && voltage < 2) voltage = 0;      // noise
-    g_lcd.print(voltage, 2);
+    
+    if (mode == 2) {    // charging
+        if (voltage < 2) voltage = 0;      // noise
+        g_lcd.print(voltage, 1);
+    } else {
+        g_lcd.print(voltage, 2);
+    }
     g_lcd.print(" V  ");
 
 
@@ -162,10 +163,14 @@ void loop() {
 
     g_lcd.setCursor(10, 1);
 
-    float current = avgAnalog(k_pins.currentSensor);
-    current = (current - g_currentSensorOffset[mode]) / 0.185;    // 2.5V offset, 185mV/A
-    if (current < 0) current *= -1.0;
+    if (mode != 1) {        // float
+        float current = readAnalog(k_pins.currentSensor);
+        current = (current - g_currentSensorOffset[mode]) / 0.185;    // 2.5V offset, 185mV/A
+        if (current < 0) current *= -1.0;
 
-    g_lcd.print(current);
-    g_lcd.print(" A");
+        g_lcd.print(current, 2);
+        g_lcd.print(" A");
+    } else {
+        g_lcd.print("      ");
+    }
 }
