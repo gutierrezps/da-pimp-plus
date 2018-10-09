@@ -39,6 +39,9 @@ float g_currentSensorOffset[3] = {2.5, 2.5, 2.5};   // voltage values for 0 Ampe
 uint8_t g_currentMode = 1;         // 0: discharge, 1: float, 2: charging
 const char k_modeStrings[3][6] = {"DISCH", "FLOAT", "CHARG"};
 
+unsigned long g_modeMillis = 0;
+uint8_t g_modeSecs = 0, g_modeMins = 0, gModeHours = 0;
+
 /**
  * analogRead() averaged and converted to voltage
  **/
@@ -52,10 +55,10 @@ float readAnalog(char pin) {
     return ((sum/k_nAnalogSamples)/(1023.0)) * 5.0;
 }
 
-void changeModeRelays() {
-    if (g_currentMode != 1) {
+void changeMode(uint8_t mode) {
+    if (mode != 1) {
         digitalWrite(k_pins.connectOrFloatRelay, HIGH);
-        if(g_currentMode == 0) {
+        if(mode == 0) {
             digitalWrite(k_pins.chargeOrDischargeRelay, LOW);
         } else {
             digitalWrite(k_pins.chargeOrDischargeRelay, HIGH);
@@ -63,6 +66,8 @@ void changeModeRelays() {
     } else {
         digitalWrite(k_pins.connectOrFloatRelay, LOW);
     }
+
+    g_currentMode = mode;
 }
 
 void setup() {
@@ -87,8 +92,7 @@ void setup() {
     g_lcd.print('.');
     
     // calibrate discharge offset
-    g_currentMode = 0;
-    changeModeRelays();
+    changeMode(0);
     delay(1000);
     g_lcd.print('.');
     delay(1000);
@@ -96,8 +100,7 @@ void setup() {
     g_lcd.print('.');
 
     // calibrate charge offset
-    g_currentMode = 2;
-    changeModeRelays();
+    changeMode(2);
     delay(1000);
     g_lcd.print('.');
     delay(1000);
@@ -105,8 +108,7 @@ void setup() {
     g_lcd.print('.');
 
     g_lcd.clear();
-    g_currentMode = 1;
-    changeModeRelays();
+    changeMode(1);
 }
 
 void loop() {
@@ -117,11 +119,9 @@ void loop() {
         while (digitalRead(k_pins.modeButton) == LOW) delay(1);
         delay(50);
 
-        if (++g_currentMode == 3) {
-            g_currentMode = 0;
-        }
+        if (++g_currentMode == 3) g_currentMode = 0;
 
-        changeModeRelays();
+        changeMode(g_currentMode);
         g_lcdTimer = 0;
     }
     
