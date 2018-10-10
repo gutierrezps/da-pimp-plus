@@ -26,7 +26,7 @@ const struct {
 } k_pins = {A0, A1, A2, A3, 10, 11, 12};
 
 const uint16_t k_nAnalogSamples = 1024;       // to take for each acquisition
-const float k_modeFactor[3] = { 3.242, 3.249, 71.9 };   // voltade divider factor
+const float k_modeFactor[3] = { 3.256, 3.229, 69.7 };   // voltade divider factor
 
 
 /**
@@ -40,7 +40,7 @@ uint8_t g_currentMode = 1;         // 0: discharge, 1: float, 2: charging
 const char k_modeStrings[3][6] = {"DISCH", "FLOAT", "CHARG"};
 
 unsigned long g_modeMillis = 0;
-uint8_t g_modeSecs = 0, g_modeMins = 0, gModeHours = 0;
+uint8_t g_modeSecs = 0, g_modeMins = 0, g_modeHours = 0;
 
 /**
  * analogRead() averaged and converted to voltage
@@ -68,6 +68,34 @@ void changeMode(uint8_t mode) {
     }
 
     g_currentMode = mode;
+
+    g_modeMillis = millis();
+    g_modeSecs = 0;
+    g_modeMins = 0;
+    g_modeHours = 0;
+}
+
+void modeTimer() {
+    if (millis() - g_modeMillis > 900) {        // approximate time
+        g_modeMillis = millis();
+
+        if (++g_modeSecs == 60) {
+            if (++g_modeMins == 60) {
+                ++g_modeHours;
+                g_modeMins = 0;
+            }
+            g_modeSecs = 0;
+        }
+    }
+
+    if (g_modeHours < 10) g_lcd.print('0');
+    g_lcd.print(g_modeHours);
+    g_lcd.print(':');
+    if (g_modeMins < 10) g_lcd.print('0');
+    g_lcd.print(g_modeMins);
+    g_lcd.print(':');
+    if (g_modeSecs < 10) g_lcd.print('0');
+    g_lcd.print(g_modeSecs);
 }
 
 void setup() {
@@ -135,11 +163,13 @@ void loop() {
     g_lcd.setCursor(0,0);
     g_lcd.print(k_modeStrings[mode]);       // 5 chars
 
-    g_lcd.setCursor(7, 0);
     
+    // print mode timer
+    g_lcd.setCursor(8, 0);
+    modeTimer();
 
-
-    // print voltage
+    
+    // print voltage, with 1 digit if charging and 2 digits otherwise
 
     g_lcd.setCursor(0,1);
 
@@ -159,7 +189,7 @@ void loop() {
     g_lcd.print(" V  ");
 
 
-    // print current 
+    // print current, if not on float mode
 
     g_lcd.setCursor(10, 1);
 
