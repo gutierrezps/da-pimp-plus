@@ -26,7 +26,7 @@ const struct {
 } k_pins = {A0, A1, A2, A3, 10, 11, 12};
 
 const uint16_t k_nAnalogSamples = 1024;       // to take for each acquisition
-const float k_modeFactor[3] = { 3.256, 3.229, 69.7 };   // voltade divider factor
+const float k_modeFactor[3] = { 3.256, 3.229, 69.7 };   // voltage divider factor
 
 
 /**
