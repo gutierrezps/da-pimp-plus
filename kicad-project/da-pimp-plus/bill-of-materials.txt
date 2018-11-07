@@ -1,0 +1,23 @@
+Qty Reference(s)    Value
+1   A1              Arduino_Pro_Mini
+3   C1, C2, C3      2.2uF
+1   D1              Diode bridge 1A
+1   DS1             16x2_Display
+1   F1              1A fuse
+1   J1              Load (terminal block 2 pins)
+1   J2              Bat (2x aligator clips)
+2   JP1, JP2        Jumper_NO_Small
+2   K1, K2          G5LE-1 Relay 5V coil
+1   P1              Wall Plug
+1   PS1             AC-DC adapter (5V DC output)
+2   Q1, Q2          BC337
+1   R1              33k
+1   R2              560R
+2   R3, R6          1k2
+2   R4, R7          22k
+2   R5, R8          11k
+1   RV1             10k
+1   SW1             SW_SPST
+1   SW2             SW_DPST
+1   SW3             Tactile switch
+1   U1              ACS712-5A Module

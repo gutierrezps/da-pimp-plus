@@ -9,6 +9,11 @@ Improved Battery Desulfator, based on [Mikey Sklar's project](http://mikeysklar.
 * Voltage and current sensing
 * Time display (how long has it been on selected mode)
 
+## Bill of materials
+
+* [TXT](kicad-project/da-pimp-plus/bill-of-materials.txt)
+* [CSV](kicad-project/da-pimp-plus/bill-of-materials.csv)
+
 ## Schematic
 
 [da-pimp-plus-sch.pdf](da-pimp-plus-sch.pdf)
